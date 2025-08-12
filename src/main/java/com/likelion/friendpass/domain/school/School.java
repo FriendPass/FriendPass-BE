@@ -1,4 +1,4 @@
-package com.likelion.friendpass.domain.school;
+package com.likelion.friendpass.entity.school;
 
 import jakarta.persistence.*;
 import lombok.*;
