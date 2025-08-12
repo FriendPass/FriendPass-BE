@@ -1,6 +1,6 @@
 package com.likelion.friendpass.domain.user;
 
-import com.likelion.friendpass.domain.school.School;
+import com.likelion.friendpass.entity.school.School;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
