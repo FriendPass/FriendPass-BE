@@ -86,8 +86,14 @@ public class AuthService {
     public TokenResponse login(LoginRequest req) {
         User user = userRepo.findByEmail(req.email())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계정입니다."));
+
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new IllegalArgumentException("탈퇴한 계정입니다.");
+        }
+
         if (!encoder.matches(req.password(), user.getPassword()))
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+
         return new TokenResponse(jwt.createToken(user.getUserId(), user.getEmail()));
     }
 }
