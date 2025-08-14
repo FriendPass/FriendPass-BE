@@ -1,4 +1,4 @@
-package com.likelion.friendpass.domain.matching;
+package com.likelion.friendpass.api.matching.dto;
 
 import lombok.*;
 

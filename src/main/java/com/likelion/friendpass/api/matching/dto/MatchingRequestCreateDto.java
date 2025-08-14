@@ -1,6 +1,6 @@
-package com.likelion.friendpass.domain.matching;
+package com.likelion.friendpass.api.matching.dto;
 
-import com.likelion.friendpass.domain.user.User;
+import com.likelion.friendpass.domain.matching.MatchingRegion;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
