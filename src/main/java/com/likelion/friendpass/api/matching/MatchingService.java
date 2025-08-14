@@ -101,9 +101,8 @@ public class MatchingService {
             matchingMemberRepository.save(member);
 
             // 매칭 요청 상태 업데이트
-            request.setMatchingTeam(team);
+            request.setTeamId(team);
             request.setStatus(MatchingStatus.수락);
-            request.setMatchingTeam(team);
         }
 
         return team;
@@ -117,7 +116,7 @@ public class MatchingService {
                 .orElseThrow(() -> new RuntimeException("팀을 찾을 수 없습니다."));
 
         // 팀원 조회
-        List<MatchingMember> members = matchingMemberRepository.findByTeamId(teamId);
+        List<MatchingMember> members = matchingMemberRepository.findByTeam_teamId(teamId);
         List<MatchingMemberDto> memberDtos = members.stream()
                 .map(m -> new MatchingMemberDto (
                         m.getUser().getUserId(),
