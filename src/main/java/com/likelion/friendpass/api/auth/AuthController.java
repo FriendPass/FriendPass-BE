@@ -1,10 +1,13 @@
 package com.likelion.friendpass.api.auth;
 
 import com.likelion.friendpass.api.auth.dto.*;
+import com.likelion.friendpass.config.TokenBlacklist;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequiredArgsConstructor
@@ -12,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenBlacklist tokenBlacklist;
 
     @PostMapping("/email/send")
     public ResponseEntity<Void> sendEmail(@Valid @RequestBody SendEmailRequest req) {
@@ -37,8 +42,21 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        // JWT는 서버 세션이 없어 프런트에서 토큰 폐기로 처리 (블랙리스트가 필요하면 추후 추가)
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        // 1) Authorization 헤더에서 Bearer 토큰 추출
+        String header = request.getHeader("Authorization");
+        if (header == null || !header.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = header.substring(7);
+
+        if (!jwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        long expEpochSec = jwtTokenProvider.getExpiry(token);
+        tokenBlacklist.add(token, expEpochSec);
+
+        return ResponseEntity.noContent().build();
     }
 }
