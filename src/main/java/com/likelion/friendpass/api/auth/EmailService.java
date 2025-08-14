@@ -20,7 +20,7 @@ public class EmailService {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(to);
         msg.setSubject("[FriendPass] 이메일 인증코드");
-        msg.setText("인증코드: " + code + " (5분 이내 입력)");
+        msg.setText("인증코드: " + code + " (5분 이내 입력하세요.)");
         mailSender.send(msg);
     }
 }

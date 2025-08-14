@@ -75,7 +75,7 @@ public class AuthService {
                 .nationality(req.nationality())
                 .isExchange(req.isExchange())
                 .language(req.language())
-                .profileImage("https://static.friendpass/default.png")  // 기본 이미지
+                .profileImage("https://static.friendpass/default.png")
                 .isActive(true)
                 .school(school)
                 .build();
