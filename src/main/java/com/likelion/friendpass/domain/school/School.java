@@ -15,11 +15,11 @@ public class School {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "school_id")
-    private Long schoolId; // 학교 ID
+    private Long schoolId;
 
     @Column(name = "school_name", nullable = false, length = 100)
-    private String schoolName; // 학교 이름
+    private String schoolName;
 
     @Column(nullable = false, length = 100)
-    private String domain; // 이메일 도메인
+    private String domain;
 }
