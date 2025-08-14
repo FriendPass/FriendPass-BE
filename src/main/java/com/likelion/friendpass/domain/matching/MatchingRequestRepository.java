@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface MatchingRequestRepository extends JpaRepository<MatchingRequest, Long> {
-    List<MatchingRequest> findByTeamId(Long teamId);
+    List<MatchingRequest> findByTeamId(MatchingTeam teamId);
     List<MatchingRequest> findByRegionAndStatus(MatchingRegion region, MatchingStatus status);
     Optional<MatchingRequest> findByUserAndStatus(User user, MatchingStatus status);
 }
