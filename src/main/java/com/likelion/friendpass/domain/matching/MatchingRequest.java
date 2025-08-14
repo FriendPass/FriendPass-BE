@@ -2,14 +2,13 @@ package com.likelion.friendpass.domain.matching;
 
 import com.likelion.friendpass.domain.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "matching_requests")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,7 +32,7 @@ public class MatchingRequest {
     private LocalDateTime requestedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="team_id", nullable=false)
+    @JoinColumn(name="team_id", nullable=true)
     private MatchingTeam matchingTeam;
 
     @ManyToOne(fetch = FetchType.LAZY)
