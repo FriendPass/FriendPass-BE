@@ -1,5 +1,9 @@
-package com.likelion.friendpass.domain.matching;
+package com.likelion.friendpass.api.matching;
 
+import com.likelion.friendpass.api.matching.dto.MatchingCompleteDto;
+import com.likelion.friendpass.api.matching.dto.MatchingRequestCreateDto;
+import com.likelion.friendpass.api.matching.dto.MatchingStatusDto;
+import com.likelion.friendpass.domain.matching.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

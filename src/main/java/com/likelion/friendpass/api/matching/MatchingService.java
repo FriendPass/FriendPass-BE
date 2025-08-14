@@ -1,5 +1,10 @@
-package com.likelion.friendpass.domain.matching;
+package com.likelion.friendpass.api.matching;
 
+import com.likelion.friendpass.api.matching.dto.MatchingCompleteDto;
+import com.likelion.friendpass.api.matching.dto.MatchingMemberDto;
+import com.likelion.friendpass.api.matching.dto.MatchingRequestCreateDto;
+import com.likelion.friendpass.api.matching.dto.MatchingStatusDto;
+import com.likelion.friendpass.domain.matching.*;
 import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
