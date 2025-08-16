@@ -1,3 +1,4 @@
+
 INSERT INTO schools (school_name, domain) VALUES
                                               ('성신여자대학교','sungshin.ac.kr'),
                                               ('국민대학교','kookmin.ac.kr'),
@@ -13,30 +14,19 @@ INSERT INTO schools (school_name, domain) VALUES
                                               ('홍익대학교','hongik.ac.kr')
     ON DUPLICATE KEY UPDATE school_name = VALUES(school_name);
 
+
 INSERT IGNORE INTO interest_tags (interest_name) VALUES
-                                              ('전통문화'),
-                                              ('문화체험'),
-                                              ('박물관'),
-                                              ('전시'),
-                                              ('공예'),
-                                              ('맛집'),
-                                              ('카페'),
-                                              ('전통시장'),
-                                              ('요리'),
-                                              ('사진'),
-                                              ('그림'),
-                                              ('산책'),
-                                              ('쇼핑'),
-                                              ('음악'),
-                                              ('게임'),
-                                              ('언어교환'),
-                                              ('역사'),
-                                              ('건축'),
-                                              ('자연'),
-                                              ('운동'),
-                                              ('책/독서'),
-                                              ('패션'),
-                                              ('영화'),
-                                              ('축제'),
-                                              ('반려동물'),
-                                              ('힐링');
+    ('k-pop'),
+    ('맛집'),
+    ('사진'),
+    ('산책'),
+    ('쇼핑'),
+    ('역사'),
+    ('예술'),
+    ('전통문화'),
+    ('책/독서'),
+    ('축제'),
+    ('카페'),
+    ('패션'),
+    ('한국문화체험'),
+    ('힐링');

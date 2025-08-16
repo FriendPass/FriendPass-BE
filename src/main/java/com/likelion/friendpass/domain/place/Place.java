@@ -1,6 +1,7 @@
 package com.likelion.friendpass.domain.place;
 
 
+import com.likelion.friendpass.domain.interest.InterestTag;
 import com.likelion.friendpass.domain.matching.MatchingRegion;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -40,9 +41,9 @@ public class Place {
     @Enumerated(EnumType.STRING)
     private MatchingRegion region;
 
-    // 나중에 FK로 변환
-    @Column(name = "category_id")
-    private Long categoryId;
-    // private Category category;
+    @ManyToOne
+    @JoinColumn(name = "interest_id", nullable=false)
+    private InterestTag interest;
+
 
 }

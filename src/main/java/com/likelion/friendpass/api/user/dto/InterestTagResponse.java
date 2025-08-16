@@ -4,6 +4,6 @@ import com.likelion.friendpass.domain.interest.InterestTag;
 
 public record InterestTagResponse(Long id, String name) {
     public static InterestTagResponse from(InterestTag it) {
-        return new InterestTagResponse(it.getId(), it.getName());
+        return new InterestTagResponse(it.getInterestId(), it.getName());
     }
 }
