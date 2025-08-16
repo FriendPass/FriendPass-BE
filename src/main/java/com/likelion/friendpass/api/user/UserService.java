@@ -56,7 +56,7 @@ public class UserService {
         if (ids.size() > 3) {
             throw new IllegalArgumentException("관심사는 최대 3개까지 선택 가능합니다.");
         }
-        long valid = ids.isEmpty() ? 0 : interestTagRepository.countByIdIn(ids);
+        long valid = ids.isEmpty() ? 0 : interestTagRepository.countByInterestIdIn(ids);
         if (valid != ids.size()) {
             throw new EntityNotFoundException("Invalid interest id included");
         }
