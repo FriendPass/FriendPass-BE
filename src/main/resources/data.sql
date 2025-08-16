@@ -10,4 +10,33 @@ INSERT INTO schools (school_name, domain) VALUES
                                               ('중앙대학교','cau.ac.kr'),
                                               ('서강대학교','sogang.ac.kr'),
                                               ('건국대학교','konkuk.ac.kr'),
-                                              ('홍익대학교','hongik.ac.kr');
+                                              ('홍익대학교','hongik.ac.kr')
+    ON DUPLICATE KEY UPDATE school_name = VALUES(school_name);
+
+INSERT IGNORE INTO interest_tags (interest_name) VALUES
+                                              ('전통문화'),
+                                              ('문화체험'),
+                                              ('박물관'),
+                                              ('전시'),
+                                              ('공예'),
+                                              ('맛집'),
+                                              ('카페'),
+                                              ('전통시장'),
+                                              ('요리'),
+                                              ('사진'),
+                                              ('그림'),
+                                              ('산책'),
+                                              ('쇼핑'),
+                                              ('음악'),
+                                              ('게임'),
+                                              ('언어교환'),
+                                              ('역사'),
+                                              ('건축'),
+                                              ('자연'),
+                                              ('운동'),
+                                              ('책/독서'),
+                                              ('패션'),
+                                              ('영화'),
+                                              ('축제'),
+                                              ('반려동물'),
+                                              ('힐링');
