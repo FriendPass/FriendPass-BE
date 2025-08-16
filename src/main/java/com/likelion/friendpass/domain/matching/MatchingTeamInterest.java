@@ -1,5 +1,6 @@
 package com.likelion.friendpass.domain.matching;
 
+import com.likelion.friendpass.domain.interest.InterestTag;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,7 @@ public class MatchingTeamInterest {
     @JoinColumn(name = "team_id", nullable = false)
     private MatchingTeam team;
 
-    // @ManyToOne
-    // @JoinColumn(name="interest_id", nullable=false)
-    // private Interest interestId;
+    @ManyToOne
+    @JoinColumn(name="interest_id", nullable=false)
+    private InterestTag interest;
 }

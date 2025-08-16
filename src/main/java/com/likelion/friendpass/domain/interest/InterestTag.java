@@ -9,7 +9,7 @@ import lombok.*;
 public class InterestTag {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "interest_id")
-    private Long id;
+    private Long interestId;
 
     @Column(name = "interest_name", nullable = false, unique = true)
     private String name;

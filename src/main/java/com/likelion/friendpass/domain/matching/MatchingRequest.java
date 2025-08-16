@@ -33,7 +33,7 @@ public class MatchingRequest {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="team_id", nullable=true)
-    private MatchingTeam teamId;
+    private MatchingTeam team;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id", nullable=false)
