@@ -13,10 +13,10 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MatchingStatusDto {
+public class MatchingStatusResponse {
     // 매칭 상태 출력 DTO
     private MatchingStatus status;
     private MatchingRegion region;
-    private List<String> interests;
+    private List<String> selectedInterests;
 
 }

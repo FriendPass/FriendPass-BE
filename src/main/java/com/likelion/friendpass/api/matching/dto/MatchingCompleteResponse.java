@@ -1,5 +1,7 @@
 package com.likelion.friendpass.api.matching.dto;
 
+import com.likelion.friendpass.domain.interest.InterestTag;
+import com.likelion.friendpass.domain.place.Place;
 import lombok.*;
 
 import java.util.List;
@@ -9,9 +11,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MatchingCompleteDto {
+public class MatchingCompleteResponse {
     private Long teamId;
-    private MatchingStatusDto status;
-    private List<MatchingMemberDto> members;
-    private List<String> interests;
+    private MatchingStatusResponse status;
+    private List<MatchingMemberResponse> members;
+    private List<String> representativeInterests;
+    private List<Place> places;
 }
