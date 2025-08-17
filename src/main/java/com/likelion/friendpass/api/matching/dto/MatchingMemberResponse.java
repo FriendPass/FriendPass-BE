@@ -10,7 +10,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @AllArgsConstructor
-public class MatchingMemberDto {
+public class MatchingMemberResponse {
     private Long userId;
     private String name;
 }
