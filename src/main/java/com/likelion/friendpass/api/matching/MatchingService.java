@@ -1,8 +1,13 @@
 package com.likelion.friendpass.api.matching;
 
 import com.likelion.friendpass.api.matching.dto.*;
+import com.likelion.friendpass.api.place.dto.InterestPlaceResponse;
+import com.likelion.friendpass.api.place.dto.PlaceResponse;
+import com.likelion.friendpass.api.user.dto.InterestTagResponse;
 import com.likelion.friendpass.domain.interest.UserInterestRepository;
 import com.likelion.friendpass.domain.matching.*;
+import com.likelion.friendpass.domain.place.Place;
+import com.likelion.friendpass.domain.place.PlaceRepository;
 import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
@@ -21,19 +26,22 @@ public class MatchingService {
     private final UserRepository userRepository;
     private final UserInterestRepository userInterestRepository;
     private final MatchingTeamInterestRepository matchingTeamInterestRepository;
+    private final PlaceRepository placeRepository;
 
     // 유저 관심사 조회 (이름)
     private List<String> getUserInterestNames(Long userId) {
         return userInterestRepository.findNamesByUserId(userId);
     }
 
-    // 팀 대표 관심사 조회 (이름)
-    private List<String> getTeamInterestNames(Long teamId) {
+    // 팀 대표 관심사 조회 (Id + 이름)
+    private List<InterestTagResponse> getTeamInterestTags(Long teamId) {
         return matchingTeamInterestRepository.findByTeam_TeamId(teamId)
                 .stream()
-                .map(mt ->mt.getInterest().getName())
+                .map(mti -> InterestTagResponse.from(mti.getInterest()))
                 .toList();
     }
+
+
 
     // 매칭 상태 헬퍼
     private MatchingStatusResponse buildStatusResponse(MatchingStatus status,
@@ -142,13 +150,30 @@ public class MatchingService {
                 .toList();
 
         // 대표 관심사 조회
-        List<String> represents = getTeamInterestNames(teamId);
+        List<InterestTagResponse> interestTags = getTeamInterestTags(teamId);
+
+        // 관심사별 장소 묶기
+        List<InterestPlaceResponse> interestPlaces = interestTags.stream()
+                .map(tag -> {
+                    List<Place> places = placeRepository.findByRegionAndInterest_InterestId(team.getMatchedRegion(), tag.InterestId());
+                    List<PlaceResponse> placeResponses = places.stream()
+                            .map(p -> new PlaceResponse(p.getName(), p.getAddress(), p.getDescription()))
+                            .toList();
+                    return new InterestPlaceResponse(tag.name(), placeResponses);
+                })
+                .toList();
+
+        // 대표 관심사 이름만 추출
+        List<String> interestNames = interestTags.stream()
+                .map(InterestTagResponse::name)
+                .toList();
+
 
         // 완료 상태 조회
         MatchingStatusResponse statusDto = buildStatusResponse(
                 MatchingStatus.수락,
                 team.getMatchedRegion(),
-                represents
+                interestNames
         );
 
         // 최종 완료 DTO 생성 및 반환
@@ -156,7 +181,8 @@ public class MatchingService {
         completeDto.setTeamId(team.getTeamId());
         completeDto.setStatus(statusDto);
         completeDto.setMembers(memberDtos);
-        completeDto.setRepresentativeInterests(represents);
+        completeDto.setRepresentativeInterests(interestTags);
+        completeDto.setRepresentativePlaces(interestPlaces);
 
         return completeDto;
 

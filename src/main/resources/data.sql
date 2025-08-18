@@ -18,17 +18,14 @@ INSERT INTO schools (school_name, domain) VALUES
 INSERT IGNORE INTO interest_tags (interest_name) VALUES
     ('k-pop'),
     ('맛집'),
-    ('사진'),
     ('산책'),
     ('쇼핑'),
     ('역사'),
-    ('예술'),
+    ('전시'),
     ('전통문화'),
-    ('책/독서'),
-    ('축제'),
+    ('이색문화체험'),
     ('카페'),
     ('패션'),
-    ('한국문화체험'),
     ('힐링');
 
 
