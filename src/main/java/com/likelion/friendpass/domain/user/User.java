@@ -1,5 +1,6 @@
 package com.likelion.friendpass.domain.user;
 
+import com.likelion.friendpass.domain.nationality.Nationality;
 import com.likelion.friendpass.domain.school.School;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,8 +31,9 @@ public class User {
     @Column(nullable = false, length = 50)
     private String nickname;
 
-    @Column(nullable = false, length = 50)
-    private String nationality;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "nationality_code", referencedColumnName = "code", nullable = false)
+    private Nationality nationality;
 
     @Column(name = "is_exchange", nullable = false)
     private Boolean isExchange;

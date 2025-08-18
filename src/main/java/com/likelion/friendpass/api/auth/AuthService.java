@@ -3,6 +3,8 @@ package com.likelion.friendpass.api.auth;
 import com.likelion.friendpass.api.auth.dto.*;
 import com.likelion.friendpass.domain.auth.EmailVerification;
 import com.likelion.friendpass.domain.auth.EmailVerificationRepository;
+import com.likelion.friendpass.domain.nationality.Nationality;
+import com.likelion.friendpass.domain.nationality.NationalityRepository;
 import com.likelion.friendpass.domain.school.School;
 import com.likelion.friendpass.domain.school.SchoolRepository;
 import com.likelion.friendpass.domain.user.User;
@@ -24,6 +26,7 @@ public class AuthService {
     private final SchoolRepository schoolRepo;
     private final PasswordEncoder encoder;
     private final JwtTokenProvider jwt;
+    private final NationalityRepository nationalityRepo;
 
     @Transactional
     public void sendEmail(SendEmailRequest req) {
@@ -83,6 +86,13 @@ public class AuthService {
         School school = schoolRepo.findById(req.schoolId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 학교입니다."));
 
+        String code = req.nationalityCode() == null ? null : req.nationalityCode().trim().toUpperCase();
+        if (code == null || code.length() != 2) {
+            throw new IllegalArgumentException("유효하지 않은 국적 코드입니다.");
+        }
+        Nationality nationality = nationalityRepo.findById(code)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 국적 코드입니다."));
+
         if (userRepo.findByEmailAndIsActiveTrue(email).isPresent()) {
             throw new IllegalStateException("이미 가입된 이메일입니다.");
         }
@@ -92,7 +102,7 @@ public class AuthService {
             inactive.setIsActive(true);
             inactive.setPassword(encoder.encode(req.password()));
             inactive.setNickname(req.nickname());
-            inactive.setNationality(req.nationality());
+            inactive.setNationality(nationality);
             inactive.setIsExchange(req.isExchange());
             inactive.setLanguage(req.language() == null ? "ko" : req.language());
             if (inactive.getProfileImage() == null || inactive.getProfileImage().isBlank()) {
@@ -107,7 +117,7 @@ public class AuthService {
                 .email(email)
                 .password(encoder.encode(req.password()))
                 .nickname(req.nickname())
-                .nationality(req.nationality())
+                .nationality(nationality)
                 .isExchange(req.isExchange())
                 .language(req.language() == null ? "ko" : req.language())
                 .profileImage("https://static.friendpass/default.png")

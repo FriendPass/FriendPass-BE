@@ -1,40 +1,38 @@
 package com.likelion.friendpass.api.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.likelion.friendpass.domain.user.User;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import java.util.List;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class UserResponse {
-    private Long userId;
-    private String email;
-    private String nickname;
-    private String nationality;
-    private Boolean isExchange;
-    private String language;
-    private String profileImage;
-    private Boolean isActive;
-    private Long schoolId;
-    private List<String> interests;
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record UserResponse(
+        Long userId,
+        String email,
+        String nickname,
+        Boolean isExchange,
+        String language,
+        String profileImage,
+        String nationalityCode,
+        String nationalityNameKo,
+        Long schoolId,
+        String schoolName,
+        List<String> interests
+) {
     public static UserResponse from(User user, List<String> interests) {
-        return UserResponse.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .nationality(user.getNationality())
-                .isExchange(user.getIsExchange())
-                .language(user.getLanguage())
-                .profileImage(user.getProfileImage())
-                .isActive(user.getIsActive())
-                .schoolId(user.getSchool().getSchoolId())
-                .interests(interests)
-                .build();
+        var n = user.getNationality();
+        var s = user.getSchool();
+        return new UserResponse(
+                user.getUserId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getIsExchange(),
+                user.getLanguage(),
+                user.getProfileImage(),
+                n != null ? n.getCode()   : null,
+                n != null ? n.getNameKo() : null,
+                s != null ? s.getSchoolId() : null,
+                s != null ? s.getSchoolName() : null,
+                interests
+        );
     }
 }
