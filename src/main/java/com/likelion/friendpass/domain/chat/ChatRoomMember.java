@@ -34,8 +34,12 @@ public class ChatRoomMember {
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_member_user"))
     private User user;
 
-    @Column(name = "is_current")
+    @Column(name = "is_current", nullable = false)
     private Boolean isCurrent;   // 현재 매칭 여부 (NULL 허용)
+    @PrePersist
+    void prePersist() {
+        if (isCurrent == null) isCurrent = true;
+    }
 
     @Column(name = "team_id", nullable = false)
     private Long teamId;

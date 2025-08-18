@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Table(
         name = "chat_message",
         indexes = {
+                @Index(name = "ix_msg_room_id", columnList = "chat_room_id, chatmessage_id"), // 페이징 최적화
                 @Index(name = "ix_msg_room_time", columnList = "chat_room_id, sent_at"),
                 @Index(name = "ix_msg_team", columnList = "team_id"),
                 @Index(name = "ix_msg_sender", columnList = "sender_id")
@@ -45,7 +46,7 @@ public class ChatMessage {
     @Column(name = "translated_text")
     private String translatedText;   // 번역 메시지 (NULL 허용)
 
-    @Column(name = "sent_at")
+    @Column(name = "sent_at", nullable = false)
     private LocalDateTime sentAt;
 
     @PrePersist

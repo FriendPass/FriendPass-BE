@@ -1,5 +1,6 @@
 package com.likelion.friendpass.api.matching;
 
+import com.likelion.friendpass.api.chat.TeamChatService;
 import com.likelion.friendpass.api.matching.dto.MatchingCompleteDto;
 import com.likelion.friendpass.api.matching.dto.MatchingMemberDto;
 import com.likelion.friendpass.api.matching.dto.MatchingRequestCreateDto;
@@ -23,6 +24,7 @@ public class MatchingService {
     private final MatchingMemberRepository matchingMemberRepository;
     private final MatchingTeamRepository matchingTeamRepository;
     private final UserRepository userRepository;
+    private final TeamChatService teamChatService;
 
     // 매칭 화면 (신청 전, 대기중) = 매개변수가 userId, 서버에서 알고 있을 때, 새로 받을 게 없음 (dto로 안함)
     public MatchingStatusDto getWaitingStatus(Long userId) {
@@ -104,6 +106,16 @@ public class MatchingService {
             request.setTeam(team);
             request.setStatus(MatchingStatus.수락);
         }
+
+        // ----------  여기부터 채팅방 자동 생성(멱등) ----------
+        // 팀원 user_id 목록만 뽑아서 전달 (User 재조회 불필요)
+        List<Long> memberUserIds = selectedRequests.stream()
+                .map(req -> req.getUser().getUserId())
+                .collect(Collectors.toList());
+
+        // 팀당 1개 채팅방 보장 + 멤버 등록
+        teamChatService.ensureTeamRoom(team.getTeamId(), memberUserIds);
+        // ----------  끝 ----------
 
         return team;
     }
