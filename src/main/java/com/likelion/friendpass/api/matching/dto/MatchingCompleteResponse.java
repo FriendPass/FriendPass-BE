@@ -1,5 +1,7 @@
 package com.likelion.friendpass.api.matching.dto;
 
+import com.likelion.friendpass.api.place.dto.InterestPlaceResponse;
+import com.likelion.friendpass.api.user.dto.InterestTagResponse;
 import com.likelion.friendpass.domain.interest.InterestTag;
 import com.likelion.friendpass.domain.place.Place;
 import lombok.*;
@@ -15,6 +17,6 @@ public class MatchingCompleteResponse {
     private Long teamId;
     private MatchingStatusResponse status;
     private List<MatchingMemberResponse> members;
-    private List<String> representativeInterests;
-    private List<Place> places;
+    private List<InterestTagResponse> representativeInterests;
+    private List<InterestPlaceResponse> representativePlaces;
 }
