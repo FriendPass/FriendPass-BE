@@ -53,4 +53,9 @@ public class ChatMessage {
     void onCreate() {
         if (sentAt == null) sentAt = LocalDateTime.now();
     }
+
+    // ★ 게으른 캐시 저장을 위한 최소 변경 지점
+    public void applyTranslation(String translated) {
+        this.translatedText = translated;
+    }
 }

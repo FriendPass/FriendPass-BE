@@ -54,5 +54,10 @@ public class ChatRoom {
         this.lastMessage = text;
         this.lastMessageAt = at;
     }
+
+    //채팅방 이름 변경
+    public void rename(String newName) {
+        this.roomName = newName;
+    }
 }
 
