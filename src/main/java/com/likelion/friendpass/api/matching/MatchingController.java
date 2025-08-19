@@ -7,6 +7,8 @@ import com.likelion.friendpass.domain.matching.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/matching")
@@ -28,14 +30,14 @@ public class MatchingController {
 
     // 매칭하기
     @PostMapping("/create-team")
-    public MatchingTeam createMatchingTeam(@RequestParam MatchingRegion region) {
+    public List<MatchingCompleteResponse> createMatchingTeam(@RequestParam MatchingRegion region) {
         return matchingService.createMatchingTeam(region);
     }
 
     // 매칭 완료 화면
     @GetMapping("/complete")
-    public MatchingCompleteResponse getComplete(@RequestParam Long teamId) {
-        return matchingService.getMatchingComplete(teamId);
+    public MatchingCompleteResponse getComplete(@RequestParam Long userId) {
+        return matchingService.getMatchingComplete(userId);
     }
 
 

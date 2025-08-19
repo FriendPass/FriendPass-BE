@@ -4,6 +4,8 @@ import com.likelion.friendpass.api.matching.dto.*;
 import com.likelion.friendpass.api.place.dto.InterestPlaceResponse;
 import com.likelion.friendpass.api.place.dto.PlaceResponse;
 import com.likelion.friendpass.api.user.dto.InterestTagResponse;
+import com.likelion.friendpass.domain.interest.InterestTag;
+import com.likelion.friendpass.domain.interest.InterestTagRepository;
 import com.likelion.friendpass.domain.interest.UserInterestRepository;
 import com.likelion.friendpass.domain.matching.*;
 import com.likelion.friendpass.domain.place.Place;
@@ -12,15 +14,18 @@ import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import com.likelion.friendpass.api.chat.TeamChatService;
-
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+
 public class MatchingService {
     private final MatchingRequestRepository matchingRequestRepository;
     private final MatchingMemberRepository matchingMemberRepository;
@@ -29,6 +34,7 @@ public class MatchingService {
     private final UserInterestRepository userInterestRepository;
     private final MatchingTeamInterestRepository matchingTeamInterestRepository;
     private final PlaceRepository placeRepository;
+    private final InterestTagRepository interestTagRepository;
     private final TeamChatService teamChatService;
 
     // 유저 관심사 조회 (이름)
@@ -93,64 +99,142 @@ public class MatchingService {
         matchingRequestRepository.save(request);
     }
 
-    // 매칭 신청 중 같은 지역을 매칭한 신청만 정렬
-    public List<MatchingRequest> getMatchingRequestsByRegion(MatchingRegion region) {
-        List<MatchingRequest> waitingRequests = matchingRequestRepository.findByRegionAndStatus(region, MatchingStatus.대기중);
-
-        if (waitingRequests.isEmpty()) {
-            throw new RuntimeException("해당 지역에 대기 중인 요청이 없습니다.");
-        }
-
-        return waitingRequests;
-    }
-
     // 매칭하기
-    public MatchingTeam createMatchingTeam(MatchingRegion region) {
-        List<MatchingRequest> waitingRequests = getMatchingRequestsByRegion(region);
+    @Transactional
+    public List<MatchingCompleteResponse> createMatchingTeam(MatchingRegion region) {
+        // 지역 대기 중인 요청 가져오기
+        List<MatchingRequest> waitingRequests = matchingRequestRepository.findByStatus(MatchingStatus.대기중);
 
-        if(waitingRequests.size() < 4) {
+        if (waitingRequests.size() < 4) {
             throw new RuntimeException("팀을 만들기 위한 충분한 매칭 신청이 없습니다.");
         }
 
-        // 임시 4명 (나중에 관심사 기반 유사도 로직 구현)
-        List<MatchingRequest> selectedRequests = waitingRequests.subList(0,4);
+        // 모델에 보낼 DTO 생성 (유저 정보 + 관심사)
+        List<MatchingRequestCreate> userDtos = waitingRequests.stream()
+                .map(req -> new MatchingRequestCreate(
+                        req.getUser().getUserId(),
+                        req.getUser().getIsExchange(),
+                        req.getRegion(),
+                        getUserInterestNames(req.getUser().getUserId()) // 관심사 이름 리스트
+                ))
+                .toList();
 
-        MatchingTeam team = MatchingTeam.builder()
-                .matchedRegion(region)
-                .matchedAt(LocalDateTime.now())
-                .build();
-        matchingTeamRepository.save(team);
+        MatchingTeamRequest teamRequestDto = new MatchingTeamRequest(userDtos);
 
-        for (MatchingRequest request : selectedRequests) {
-            // 팀원 객체 생성
-            MatchingMember member = new MatchingMember();
-            member.setTeam(team);
-            member.setUser(request.getUser());
-            matchingMemberRepository.save(member);
+        WebClient webClient = WebClient.create("http://localhost:8000");
 
-            // 매칭 요청 상태 업데이트
-            request.setTeam(team);
-            request.setStatus(MatchingStatus.수락);
+        List<ConfirmedTeamResponse> confirmedTeams = webClient.post()
+                .uri("/recommend-teams")
+                .bodyValue(teamRequestDto.getUsers()) // 모델은 List<User> 형식으로 받음
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<ConfirmedTeamResponse>>() {})
+                .block(); // 동기 처리
+
+        List<MatchingCompleteResponse> completeResponses = new ArrayList<>();
+
+        // 추천된 팀별 처리
+        for (ConfirmedTeamResponse confirmedTeam : confirmedTeams) {
+            // 팀 생성 및 저장
+            MatchingTeam team = MatchingTeam.builder()
+                    .matchedRegion(region)
+                    .matchedAt(LocalDateTime.now())
+                    .build();
+            matchingTeamRepository.save(team);
+
+            // ---------- [추가] 채팅방 자동 생성(멱등) ----------
+            List<Long> memberUserIds = confirmedTeam.getMemberUserIds();
+            // 팀당 1개 채팅방 보장 + 팀원 등록 (TeamChatService 내부에서 멱등 처리
+            teamChatService.ensureTeamRoom(team.getTeamId(), memberUserIds);
+            // ---------- [끝] ----------
+
+            // 팀원 저장 및 매칭 요청 상태 업데이트
+            for (Long userId : confirmedTeam.getMemberUserIds()) {
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다: " + userId));
+
+                MatchingMember member = new MatchingMember();
+                member.setTeam(team);
+                member.setUser(user);
+                matchingMemberRepository.save(member);
+
+                // 매칭 요청 상태 업데이트
+                MatchingRequest request = matchingRequestRepository.findByUserAndStatus(user, MatchingStatus.대기중)
+                        .orElseThrow(() -> new RuntimeException("매칭 요청이 존재하지 않습니다: " + userId));
+                request.setTeam(team);
+                request.setStatus(MatchingStatus.수락);
+            }
+
+            // 모델에서 받은 대표 관심사 이름 → DB에서 id 조회 → DTO 생성
+            List<InterestTagResponse> interestTags = confirmedTeam.getRepresentativeInterests().stream()
+                    .map(name -> interestTagRepository.findByName(name)
+                            .map(it -> new InterestTagResponse(it.getInterestId(), it.getName()))
+                            .orElseThrow(() -> new RuntimeException("관심사를 찾을 수 없습니다: " + name))
+                    ).toList();
+
+            // 팀 관심사 저장
+            for (InterestTagResponse tag : interestTags) {
+                InterestTag interest = interestTagRepository.findById(tag.InterestId())
+                        .orElseThrow(() -> new RuntimeException("관심사 ID를 찾을 수 없습니다."));
+
+                MatchingTeamInterest teamInterest = new MatchingTeamInterest();
+                teamInterest.setTeam(team);
+                teamInterest.setInterest(interest);
+                matchingTeamInterestRepository.save(teamInterest);
+            }
+            // 관심사별 장소 조회
+            List<InterestPlaceResponse> interestPlaces = interestTags.stream()
+                    .map(tag -> {
+                        List<Place> places = placeRepository.findByRegionAndInterest_InterestId(region, tag.InterestId());
+                        List<PlaceResponse> placeResponses = places.stream()
+                                .map(p -> new PlaceResponse(p.getName(), p.getAddress(), p.getDescription()))
+                                .toList();
+                        return new InterestPlaceResponse(tag.name(), placeResponses);
+                    })
+                    .toList();
+
+            List<MatchingMember> members = matchingMemberRepository.findByTeam(team);
+
+            // 최종 DTO 생성
+            List<MatchingMemberResponse> memberDtos = members.stream()
+                    .map(m -> new MatchingMemberResponse(m.getUser().getUserId(), m.getUser().getNickname()))
+                    .toList();
+
+            MatchingStatusResponse statusDto = buildStatusResponse(MatchingStatus.수락, region,
+                    interestTags.stream().map(InterestTagResponse::name).toList());
+
+            MatchingCompleteResponse completeDto = new MatchingCompleteResponse();
+            completeDto.setTeamId(team.getTeamId());
+            completeDto.setStatus(statusDto);
+            completeDto.setMembers(memberDtos);
+            completeDto.setRepresentativeInterests(interestTags);
+            completeDto.setRepresentativePlaces(interestPlaces);
+
+            completeResponses.add(completeDto);
         }
 
-        // ---------- [추가] 채팅방 자동 생성(멱등) ----------
-        List<Long> memberUserIds = selectedRequests.stream()
-                .map(req -> req.getUser().getUserId())
-                .collect(Collectors.toList());
+        return completeResponses;
 
-        // 팀당 1개 채팅방 보장 + 팀원 등록 (TeamChatService 내부에서 멱등 처리)
-        teamChatService.ensureTeamRoom(team.getTeamId(), memberUserIds);
-        // ---------- [끝] ----------
-
-        return team;
     }
 
-    // 완료된 화면
-    public MatchingCompleteResponse getMatchingComplete(Long teamId) {
 
-        // 팀 조회
-        MatchingTeam team = matchingTeamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("팀을 찾을 수 없습니다."));
+    // 완료된 화면
+    public MatchingCompleteResponse getMatchingComplete(Long userId) {
+
+        // 유저 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+
+        // 매칭 요청 조회
+        MatchingRequest request = matchingRequestRepository.findByUserAndStatus(user, MatchingStatus.수락)
+                .orElseThrow(() -> new RuntimeException("매칭 요청이 없습니다."));
+
+        // 매칭 완료 여부 확인
+        if (request.getStatus() != MatchingStatus.수락 || request.getTeam() == null) {
+            throw new RuntimeException("아직 매칭되지 않았습니다.");
+        }
+
+        MatchingTeam team = request.getTeam();
+        Long teamId = team.getTeamId();
 
         // 팀원 조회
         List<MatchingMember> members = matchingMemberRepository.findByTeam(team);
@@ -180,17 +264,16 @@ public class MatchingService {
                 .map(InterestTagResponse::name)
                 .toList();
 
-
-        // 완료 상태 조회
+        // 상태 DTO 생성
         MatchingStatusResponse statusDto = buildStatusResponse(
                 MatchingStatus.수락,
                 team.getMatchedRegion(),
                 interestNames
         );
 
-        // 최종 완료 DTO 생성 및 반환
+        // 최종 응답 DTO 생성
         MatchingCompleteResponse completeDto = new MatchingCompleteResponse();
-        completeDto.setTeamId(team.getTeamId());
+        completeDto.setTeamId(teamId);
         completeDto.setStatus(statusDto);
         completeDto.setMembers(memberDtos);
         completeDto.setRepresentativeInterests(interestTags);
