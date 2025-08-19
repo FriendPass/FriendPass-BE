@@ -6,14 +6,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class MatchingRequestCreate {
 
-    // 매칭하기 버튼을 눌렀을 때의 DTO
-    // interest는 db에서 가져오기
     private Long userId;
+    private Boolean isExchange;
     private MatchingRegion region;
+    private List<String> interests;
 }
