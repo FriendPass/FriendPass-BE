@@ -14,6 +14,8 @@ INSERT INTO schools (school_name, domain) VALUES
                                               ('홍익대학교','hongik.ac.kr')
     ON DUPLICATE KEY UPDATE school_name = VALUES(school_name);
 
+DELETE FROM interest_tags
+WHERE interest_name IN ('책/독서', '사진', '예술', '한국문화체험', '축제');
 
 INSERT IGNORE INTO interest_tags (interest_name) VALUES
     ('k-pop'),
@@ -27,6 +29,7 @@ INSERT IGNORE INTO interest_tags (interest_name) VALUES
     ('카페'),
     ('패션'),
     ('힐링');
+
 
 
 INSERT INTO nationality (code, name_ko, name_en) VALUES
