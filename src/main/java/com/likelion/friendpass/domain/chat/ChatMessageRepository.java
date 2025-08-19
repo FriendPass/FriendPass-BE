@@ -25,4 +25,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
             @Param("roomId") Long roomId,
             @Param("beforeId") Long beforeId,
             Pageable pageable);
+
+    boolean existsByIdAndChatRoom_ChatRoomId(Long messageId, Long chatRoomId);
 }

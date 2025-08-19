@@ -19,7 +19,7 @@ public class ChatController {
 
     @GetMapping("/rooms")
     public Map<String, List<ChatRoomListDto>> rooms(
-            @AuthenticationPrincipal(expression = "id") Long userId
+            @AuthenticationPrincipal Long userId
     ){
         return chatQueryService.getMyRooms(userId);
     }

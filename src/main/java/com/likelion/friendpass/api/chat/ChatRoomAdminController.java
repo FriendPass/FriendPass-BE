@@ -15,7 +15,7 @@ public class ChatRoomAdminController {
     @PatchMapping("/rooms/{roomId}/name")
     public void rename(
             @PathVariable Long roomId,
-            @AuthenticationPrincipal(expression = "id") Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestBody RenameRoomReq req
     ) {
         commandService.rename(roomId, userId, req.getRoomName());

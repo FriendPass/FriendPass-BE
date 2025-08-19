@@ -22,7 +22,7 @@ public class ChatMessageController {
     @PostMapping("/rooms/{roomId}/messages")
     public ChatMessageDto send(
             @PathVariable Long roomId,
-            @AuthenticationPrincipal(expression = "id") Long senderId,
+            @AuthenticationPrincipal Long senderId,
             @RequestBody SendMessageReq req
     ) {
         return chatMessageService.send(roomId, senderId, req.getText());
