@@ -13,9 +13,11 @@ import com.likelion.friendpass.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.likelion.friendpass.api.chat.TeamChatService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class MatchingService {
     private final UserInterestRepository userInterestRepository;
     private final MatchingTeamInterestRepository matchingTeamInterestRepository;
     private final PlaceRepository placeRepository;
+    private final TeamChatService teamChatService;
 
     // 유저 관심사 조회 (이름)
     private List<String> getUserInterestNames(Long userId) {
@@ -129,6 +132,15 @@ public class MatchingService {
             request.setTeam(team);
             request.setStatus(MatchingStatus.수락);
         }
+
+        // ---------- [추가] 채팅방 자동 생성(멱등) ----------
+        List<Long> memberUserIds = selectedRequests.stream()
+                .map(req -> req.getUser().getUserId())
+                .collect(Collectors.toList());
+
+        // 팀당 1개 채팅방 보장 + 팀원 등록 (TeamChatService 내부에서 멱등 처리)
+        teamChatService.ensureTeamRoom(team.getTeamId(), memberUserIds);
+        // ---------- [끝] ----------
 
         return team;
     }
