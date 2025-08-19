@@ -1,10 +1,5 @@
 package com.likelion.friendpass.api.matching;
 
-import com.likelion.friendpass.api.chat.TeamChatService;
-import com.likelion.friendpass.api.matching.dto.MatchingCompleteDto;
-import com.likelion.friendpass.api.matching.dto.MatchingMemberDto;
-import com.likelion.friendpass.api.matching.dto.MatchingRequestCreateDto;
-import com.likelion.friendpass.api.matching.dto.MatchingStatusDto;
 import com.likelion.friendpass.api.matching.dto.*;
 import com.likelion.friendpass.api.place.dto.InterestPlaceResponse;
 import com.likelion.friendpass.api.place.dto.PlaceResponse;
@@ -18,9 +13,11 @@ import com.likelion.friendpass.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.likelion.friendpass.api.chat.TeamChatService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +26,10 @@ public class MatchingService {
     private final MatchingMemberRepository matchingMemberRepository;
     private final MatchingTeamRepository matchingTeamRepository;
     private final UserRepository userRepository;
-    private final TeamChatService teamChatService;
     private final UserInterestRepository userInterestRepository;
     private final MatchingTeamInterestRepository matchingTeamInterestRepository;
     private final PlaceRepository placeRepository;
+    private final TeamChatService teamChatService;
 
     // 유저 관심사 조회 (이름)
     private List<String> getUserInterestNames(Long userId) {
@@ -136,15 +133,14 @@ public class MatchingService {
             request.setStatus(MatchingStatus.수락);
         }
 
-        // ----------  여기부터 채팅방 자동 생성(멱등) ----------
-        // 팀원 user_id 목록만 뽑아서 전달 (User 재조회 불필요)
+        // ---------- [추가] 채팅방 자동 생성(멱등) ----------
         List<Long> memberUserIds = selectedRequests.stream()
                 .map(req -> req.getUser().getUserId())
                 .collect(Collectors.toList());
 
-        // 팀당 1개 채팅방 보장 + 멤버 등록
+        // 팀당 1개 채팅방 보장 + 팀원 등록 (TeamChatService 내부에서 멱등 처리)
         teamChatService.ensureTeamRoom(team.getTeamId(), memberUserIds);
-        // ----------  끝 ----------
+        // ---------- [끝] ----------
 
         return team;
     }
