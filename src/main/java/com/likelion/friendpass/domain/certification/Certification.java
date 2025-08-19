@@ -1,5 +1,6 @@
 package com.likelion.friendpass.domain.certification;
 
+import com.likelion.friendpass.domain.matching.MatchingTeam;
 import com.likelion.friendpass.domain.place.Place;
 import com.likelion.friendpass.domain.user.User;
 import jakarta.persistence.*;
@@ -28,6 +29,10 @@ public class Certification {
     @ManyToOne
     @JoinColumn(name="user_id", nullable=false)
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name="team_id", nullable = false)
+    private MatchingTeam team;
 
     @ManyToOne
     @JoinColumn(name="place_id", nullable=false)
