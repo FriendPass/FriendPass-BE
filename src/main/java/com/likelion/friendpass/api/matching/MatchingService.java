@@ -17,9 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import com.likelion.friendpass.api.chat.TeamChatService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class MatchingService {
     private final MatchingTeamInterestRepository matchingTeamInterestRepository;
     private final PlaceRepository placeRepository;
     private final InterestTagRepository interestTagRepository;
+    private final TeamChatService teamChatService;
 
     // 유저 관심사 조회 (이름)
     private List<String> getUserInterestNames(Long userId) {
@@ -138,6 +141,12 @@ public class MatchingService {
                     .build();
             matchingTeamRepository.save(team);
 
+            // ---------- [추가] 채팅방 자동 생성(멱등) ----------
+            List<Long> memberUserIds = confirmedTeam.getMemberUserIds();
+            // 팀당 1개 채팅방 보장 + 팀원 등록 (TeamChatService 내부에서 멱등 처리
+            teamChatService.ensureTeamRoom(team.getTeamId(), memberUserIds);
+            // ---------- [끝] ----------
+
             // 팀원 저장 및 매칭 요청 상태 업데이트
             for (Long userId : confirmedTeam.getMemberUserIds()) {
                 User user = userRepository.findById(userId)
@@ -204,8 +213,8 @@ public class MatchingService {
         }
 
         return completeResponses;
-    }
 
+    }
 
 
     // 완료된 화면
