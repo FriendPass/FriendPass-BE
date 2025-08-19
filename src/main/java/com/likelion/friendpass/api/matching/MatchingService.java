@@ -5,7 +5,14 @@ import com.likelion.friendpass.api.matching.dto.MatchingCompleteDto;
 import com.likelion.friendpass.api.matching.dto.MatchingMemberDto;
 import com.likelion.friendpass.api.matching.dto.MatchingRequestCreateDto;
 import com.likelion.friendpass.api.matching.dto.MatchingStatusDto;
+import com.likelion.friendpass.api.matching.dto.*;
+import com.likelion.friendpass.api.place.dto.InterestPlaceResponse;
+import com.likelion.friendpass.api.place.dto.PlaceResponse;
+import com.likelion.friendpass.api.user.dto.InterestTagResponse;
+import com.likelion.friendpass.domain.interest.UserInterestRepository;
 import com.likelion.friendpass.domain.matching.*;
+import com.likelion.friendpass.domain.place.Place;
+import com.likelion.friendpass.domain.place.PlaceRepository;
 import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
@@ -13,9 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,9 +30,38 @@ public class MatchingService {
     private final MatchingTeamRepository matchingTeamRepository;
     private final UserRepository userRepository;
     private final TeamChatService teamChatService;
+    private final UserInterestRepository userInterestRepository;
+    private final MatchingTeamInterestRepository matchingTeamInterestRepository;
+    private final PlaceRepository placeRepository;
+
+    // 유저 관심사 조회 (이름)
+    private List<String> getUserInterestNames(Long userId) {
+        return userInterestRepository.findNamesByUserId(userId);
+    }
+
+    // 팀 대표 관심사 조회 (Id + 이름)
+    private List<InterestTagResponse> getTeamInterestTags(Long teamId) {
+        return matchingTeamInterestRepository.findByTeam_TeamId(teamId)
+                .stream()
+                .map(mti -> InterestTagResponse.from(mti.getInterest()))
+                .toList();
+    }
+
+
+
+    // 매칭 상태 헬퍼
+    private MatchingStatusResponse buildStatusResponse(MatchingStatus status,
+                                                       MatchingRegion region,
+                                                       List<String> interests) {
+        MatchingStatusResponse response = new MatchingStatusResponse();
+        response.setStatus(status);
+        response.setRegion(region);
+        response.setSelectedInterests(interests);
+        return response;
+    }
 
     // 매칭 화면 (신청 전, 대기중) = 매개변수가 userId, 서버에서 알고 있을 때, 새로 받을 게 없음 (dto로 안함)
-    public MatchingStatusDto getWaitingStatus(Long userId) {
+    public MatchingStatusResponse getWaitingStatus(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
@@ -35,25 +69,20 @@ public class MatchingService {
                 .findByUserAndStatus(user, MatchingStatus.대기중)
                 .orElse(null);
 
-        MatchingStatusDto statusDto = new MatchingStatusDto();
+        List<String> selectedInterests = getUserInterestNames(userId);
 
         // 대기중인 경우
         if (request != null) {
-            statusDto.setStatus(request.getStatus());
-            statusDto.setRegion(request.getRegion());
-            statusDto.setInterests(new ArrayList<>()); // 나중에 수정
-        } else { // 신청 전인 경우
-            statusDto.setStatus(null);
-            statusDto.setRegion(null);
-            statusDto.setInterests(new ArrayList<>()); // 나중에 수정
+            return buildStatusResponse(request.getStatus(), request.getRegion(), selectedInterests);
+        } else { // 매칭 전 혹은 매칭 실패한 경우
+            return buildStatusResponse(null, null, selectedInterests);
         }
 
-        return statusDto;
     }
 
     // 매칭 신청하기 = dto가 필요하므로 dto로 함 (지역 받아야 해서)
     @Transactional
-    public void createMatchingRequest(final MatchingRequestCreateDto dto) {
+    public void createMatchingRequest(final MatchingRequestCreate dto) {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
@@ -121,7 +150,7 @@ public class MatchingService {
     }
 
     // 완료된 화면
-    public MatchingCompleteDto getMatchingComplete(Long teamId) {
+    public MatchingCompleteResponse getMatchingComplete(Long teamId) {
 
         // 팀 조회
         MatchingTeam team = matchingTeamRepository.findById(teamId)
@@ -129,28 +158,49 @@ public class MatchingService {
 
         // 팀원 조회
         List<MatchingMember> members = matchingMemberRepository.findByTeam(team);
-        List<MatchingMemberDto> memberDtos = members.stream()
-                .map(m -> new MatchingMemberDto (
+        List<MatchingMemberResponse> memberDtos = members.stream()
+                .map(m -> new MatchingMemberResponse(
                         m.getUser().getUserId(),
                         m.getUser().getNickname()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
-        // 상태 조회
-        MatchingStatusDto statusDto = new MatchingStatusDto();
-        statusDto.setStatus(MatchingStatus.수락);
-        statusDto.setRegion(team.getMatchedRegion());
-        statusDto.setInterests(new ArrayList<>()); // 임시 관심사 리스트 추후 db 생성시 추가
+        // 대표 관심사 조회
+        List<InterestTagResponse> interestTags = getTeamInterestTags(teamId);
+
+        // 관심사별 장소 묶기
+        List<InterestPlaceResponse> interestPlaces = interestTags.stream()
+                .map(tag -> {
+                    List<Place> places = placeRepository.findByRegionAndInterest_InterestId(team.getMatchedRegion(), tag.InterestId());
+                    List<PlaceResponse> placeResponses = places.stream()
+                            .map(p -> new PlaceResponse(p.getName(), p.getAddress(), p.getDescription()))
+                            .toList();
+                    return new InterestPlaceResponse(tag.name(), placeResponses);
+                })
+                .toList();
+
+        // 대표 관심사 이름만 추출
+        List<String> interestNames = interestTags.stream()
+                .map(InterestTagResponse::name)
+                .toList();
+
+
+        // 완료 상태 조회
+        MatchingStatusResponse statusDto = buildStatusResponse(
+                MatchingStatus.수락,
+                team.getMatchedRegion(),
+                interestNames
+        );
 
         // 최종 완료 DTO 생성 및 반환
-        MatchingCompleteDto completeDto = new MatchingCompleteDto();
+        MatchingCompleteResponse completeDto = new MatchingCompleteResponse();
         completeDto.setTeamId(team.getTeamId());
         completeDto.setStatus(statusDto);
         completeDto.setMembers(memberDtos);
-        completeDto.setInterests(new ArrayList<>()); // 임시 관심사 리스트 추후 db 생성시 추가
+        completeDto.setRepresentativeInterests(interestTags);
+        completeDto.setRepresentativePlaces(interestPlaces);
 
         return completeDto;
-
 
     }
 }

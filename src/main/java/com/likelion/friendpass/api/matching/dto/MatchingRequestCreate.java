@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MatchingRequestCreateDto {
+public class MatchingRequestCreate {
 
     // 매칭하기 버튼을 눌렀을 때의 DTO
     // interest는 db에서 가져오기

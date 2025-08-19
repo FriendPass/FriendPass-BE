@@ -2,16 +2,15 @@ package com.likelion.friendpass.domain.matching;
 
 import com.likelion.friendpass.domain.interest.InterestTag;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name="Matching_team_interests")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-
+@Getter
+@Setter
 public class MatchingTeamInterest {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)

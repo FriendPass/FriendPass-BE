@@ -12,8 +12,17 @@ public interface UserInterestRepository extends JpaRepository<UserInterest, Long
     @Query("""
            select it.name
            from UserInterest ui
-           join InterestTag it on it.id = ui.interestId
+           join InterestTag it on it.interestId = ui.interestId
            where ui.userId = :userId
            """)
     List<String> findNamesByUserId(@Param("userId") Long userId);
+
+    @Query("""
+            select it.interestId
+            from UserInterest ui
+            join InterestTag it on it.interestId = ui.interestId
+            where ui.userId = :userId
+            """)
+    List<Long> findInterestIdsByUserId(@Param("userId") Long userId);
+
 }
