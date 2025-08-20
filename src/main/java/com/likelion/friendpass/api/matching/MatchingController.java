@@ -5,6 +5,7 @@ import com.likelion.friendpass.api.matching.dto.MatchingRequestCreate;
 import com.likelion.friendpass.api.matching.dto.MatchingStatusResponse;
 import com.likelion.friendpass.domain.matching.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,6 +40,14 @@ public class MatchingController {
     public MatchingCompleteResponse getComplete(@RequestParam Long userId) {
         return matchingService.getMatchingComplete(userId);
     }
+
+    // 매칭 끝내기
+    @PostMapping("/exit")
+    public ResponseEntity<Void> exitMatch(@RequestBody MatchingRequest requestDto) {
+        matchingService.exitMatching(requestDto.getTeam().getTeamId());
+        return ResponseEntity.ok().build();
+    }
+
 
 
 }

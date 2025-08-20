@@ -282,4 +282,18 @@ public class MatchingService {
         return completeDto;
 
     }
+
+    // 매칭 나가기
+    @Transactional
+    public void exitMatching(Long teamId) {
+        List<MatchingRequest> requests = matchingRequestRepository.findByTeam_TeamId(teamId);
+        if (requests.isEmpty()) {
+            throw new IllegalStateException("존재하지 않는 팀입니다.");
+        }
+        for (MatchingRequest request : requests) {
+            request.setStatus(MatchingStatus.만료);
+        }
+        matchingRequestRepository.saveAll(requests);
+    }
+
 }
