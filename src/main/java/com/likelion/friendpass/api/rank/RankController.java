@@ -38,10 +38,5 @@ public class RankController {
         rankService.addStamps(userId, req.getDelta());
     }
 
-    /** 인증(= 1스탬프 적립 가정) */
-    @PostMapping("/certify")
-    public void certify(@AuthenticationPrincipal Long userId) {
-        rankService.certifyNow(userId);
-    }
 }
 

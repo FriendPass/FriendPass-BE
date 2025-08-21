@@ -2,6 +2,7 @@ package com.likelion.friendpass.api.certification;
 
 import com.likelion.friendpass.api.certification.dto.CertificationRequest;
 import com.likelion.friendpass.api.certification.dto.CertificationResponse;
+import com.likelion.friendpass.api.rank.RankService;
 import com.likelion.friendpass.domain.certification.Certification;
 import com.likelion.friendpass.domain.certification.CertificationRepository;
 import com.likelion.friendpass.domain.matching.*;
@@ -28,6 +29,7 @@ public class CertificationService {
     private final MatchingRequestRepository matchingRequestRepository;
     private final UserRepository userRepository;
     private final MatchingTeamInterestRepository matchingTeamInterestRepository;
+    private final RankService rankService;
 
     public CertificationResponse certify(CertificationRequest request) {
         Long userId = request.userId();
@@ -85,6 +87,10 @@ public class CertificationService {
             newCertification.setTeam(team);
 
             certificationRepository.save(newCertification);
+
+            // 리워드 스탬프 지급
+            //rankService.addStamps(userId, 1);
+
             return new CertificationResponse(true, "인증 성공! 스탬프가 지급되었습니다.");
 
             // 리워드 추가
