@@ -10,4 +10,6 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
     List<ChatRoomMember> findAllByUserOrderByIdDesc(User user);
     boolean existsByChatRoomAndUser(ChatRoom chatRoom, User user);
     long countByChatRoom(ChatRoom chatRoom);
+
+    boolean existsByChatRoom_ChatRoomIdAndUser_UserId(Long chatRoomId, Long userId);
 }

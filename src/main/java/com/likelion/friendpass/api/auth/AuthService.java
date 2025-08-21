@@ -10,6 +10,7 @@ import com.likelion.friendpass.domain.school.SchoolRepository;
 import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +77,9 @@ public class AuthService {
         ev.setVerified(true);
     }
 
+    @Value("${app.profile.default-image-url}")
+    private String defaultProfileImageUrl;
+
     @Transactional
     public void signup(SignupRequest req) {
         String email = req.email().trim().toLowerCase();
@@ -106,7 +110,7 @@ public class AuthService {
             inactive.setIsExchange(req.isExchange());
             inactive.setLanguage(req.language() == null ? "ko" : req.language());
             if (inactive.getProfileImage() == null || inactive.getProfileImage().isBlank()) {
-                inactive.setProfileImage("https://static.friendpass/default.png");
+                inactive.setProfileImage(defaultProfileImageUrl);
             }
             inactive.setSchool(school);
 
@@ -120,7 +124,7 @@ public class AuthService {
                 .nationality(nationality)
                 .isExchange(req.isExchange())
                 .language(req.language() == null ? "ko" : req.language())
-                .profileImage("https://static.friendpass/default.png")
+                .profileImage(defaultProfileImageUrl)
                 .isActive(true)
                 .school(school)
                 .build();

@@ -20,7 +20,7 @@ public class MessageTranslationController {
     @GetMapping("/messages/{messageId}/translate")
     public ChatMessageTranslatedDto translateOne(
             @PathVariable Long messageId,
-            @AuthenticationPrincipal(expression = "id") Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) String target
     ) {
         return translationService.translateForUser(messageId, userId, target);
