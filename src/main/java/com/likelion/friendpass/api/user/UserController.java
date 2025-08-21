@@ -49,6 +49,13 @@ public class UserController {
         return ResponseEntity.ok(new UploadProfileImageResponse(url));
     }
 
+    @DeleteMapping("/profile-image")
+    public ResponseEntity<UploadProfileImageResponse> resetProfileImage(Authentication authentication) {
+        Long userId = Long.valueOf(authentication.getName());
+        String defaultUrl = userService.resetProfileImageToDefault(userId);
+        return ResponseEntity.ok(new UploadProfileImageResponse(defaultUrl));
+    }
+
     @PutMapping("/interests")
     public ResponseEntity<Void> updateInterests(Authentication authentication,
                                                 @Valid @RequestBody UpdateInterestsRequest req) {
