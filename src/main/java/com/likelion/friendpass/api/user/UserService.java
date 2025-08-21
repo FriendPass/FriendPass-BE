@@ -10,6 +10,7 @@ import com.likelion.friendpass.domain.user.UserRepository;
 import com.likelion.friendpass.infra.s3.S3Uploader;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,8 @@ public class UserService {
     private final UserInterestRepository userInterestRepository;
     private final InterestTagRepository interestTagRepository;
     private final S3Uploader s3Uploader;
+    @Value("${app.profile.default-image-url:https://your-bucket/public/default-profile.png}")
+    private String defaultProfileImageUrl;
 
     @Transactional(readOnly = true)
     public UserResponse getMyInfo(Long userId) {
@@ -48,6 +51,14 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         user.setProfileImage(url);
         return url;
+    }
+
+    @Transactional
+    public String resetProfileImageToDefault(Long userId) {
+        User user = userRepository.findByUserIdAndIsActiveTrue(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        user.setProfileImage(defaultProfileImageUrl);
+        return defaultProfileImageUrl;
     }
 
     @Transactional
