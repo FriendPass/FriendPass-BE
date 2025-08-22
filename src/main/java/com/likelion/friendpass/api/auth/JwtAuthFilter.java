@@ -25,6 +25,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+
+        // 🔥 인증 없이 통과시킬 경로들
+        if (path.equals("/") || path.startsWith("/auth") || path.startsWith("/nationalities")
+                || path.startsWith("/interests") || path.startsWith("/schools")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String header = request.getHeader("Authorization");
 
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
