@@ -4,10 +4,14 @@ import com.likelion.friendpass.api.matching.dto.MatchingCompleteResponse;
 import com.likelion.friendpass.api.matching.dto.MatchingRequestCreate;
 import com.likelion.friendpass.api.matching.dto.MatchingStatusResponse;
 import com.likelion.friendpass.domain.matching.*;
+import com.likelion.friendpass.domain.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.attribute.UserPrincipal;
 import java.util.List;
 
 @RestController
@@ -19,25 +23,33 @@ public class MatchingController {
 
     // 매칭 상태 확인 (신청 전 / 대기중)
     @GetMapping("/status")
-    public MatchingStatusResponse getStatus(@RequestParam Long userId) {
+    public MatchingStatusResponse getStatus() {
+        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return matchingService.getWaitingStatus(userId);
     }
 
     // 매칭 신청하기
     @PostMapping("/request")
-    public void createMatchingRequest(@RequestBody MatchingRequestCreate dto) {
-        matchingService.createMatchingRequest(dto);
+    public ResponseEntity<Void> createMatchingRequest(
+            @RequestBody MatchingRequestCreate requestDto,
+            @AuthenticationPrincipal User user
+    ) {
+        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        matchingService.createMatchingRequest(userId, requestDto);
+        return ResponseEntity.ok().build(); // 200 OK, 바디 없음
     }
+
 
     // 매칭하기
     @PostMapping("/create-team")
-    public List<MatchingCompleteResponse> createMatchingTeam(@RequestParam MatchingRegion region) {
-        return matchingService.createMatchingTeam(region);
+    public List<MatchingCompleteResponse> createMatchingTeam() {
+        return matchingService.createMatchingTeam();
     }
 
     // 매칭 완료 화면
     @GetMapping("/complete")
-    public MatchingCompleteResponse getComplete(@RequestParam Long userId) {
+    public MatchingCompleteResponse getComplete() {
+        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return matchingService.getMatchingComplete(userId);
     }
 

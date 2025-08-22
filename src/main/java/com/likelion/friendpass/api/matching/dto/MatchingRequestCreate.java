@@ -13,9 +13,5 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MatchingRequestCreate {
-
-    private Long userId;
-    private Boolean isExchange;
     private MatchingRegion region;
-    private List<String> interests;
 }
