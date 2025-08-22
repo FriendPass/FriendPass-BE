@@ -29,7 +29,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.SSH_KEY }}
           source: "build/libs/*.jar"
-          target: "/home/ec2-user/friendpass/backend/app.jar"
+          target: "/home/ec2-user/friendpass/backend/"
 
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@master
