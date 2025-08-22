@@ -7,6 +7,7 @@ import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,21 +59,13 @@ public class RankService {
     public void addStamps(Long userId, int delta) {
         if (delta == 0) return;
 
-        int updated = userRewardsRepository.incrementStamps(userId, delta);
-        if (updated == 0) {
-            // row가 아직 없으면 생성(최초 적립 케이스)
-            User user = userRepository.findById(userId).orElseThrow();
-            int total = Math.max(delta, 0); // 음수 delta로 최초 생성 방지
-            UserRewards created = UserRewards.builder()
-                    .userId(userId)
-                    .user(user)
-                    .totalStamps(total)
-                    .lastCertified(LocalDateTime.now())
-                    .build();
-            userRewardsRepository.save(created);
-            // 음수 시작을 허용하려면 위 Math.max 제거
-        }
+        // DB에서 유저 row가 없으면 생성, 있으면 delta만 증가
+        int updated = userRewardsRepository.incrementOrCreate(userId, delta);
+
+        // updated는 영향을 받은 row 수
+        // UPSERT라서 항상 1 이상일 것임
     }
+
 
     /** ‘인증’ 버튼 등에서 오늘 인증만 기록하고 싶을 때 */
     @Transactional

@@ -1,9 +1,12 @@
 package com.likelion.friendpass.domain.rank;
 
 import com.likelion.friendpass.api.rank.dto.RankEntryDto;
+import com.likelion.friendpass.domain.user.User;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
 
 public interface UserRewardsRepository extends JpaRepository<UserRewards, Long> {
 
@@ -36,4 +39,17 @@ public interface UserRewardsRepository extends JpaRepository<UserRewards, Long> 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update UserRewards ur set ur.totalStamps = ur.totalStamps + :delta, ur.lastCertified = CURRENT_TIMESTAMP where ur.userId = :userId")
     int incrementStamps(@Param("userId") Long userId, @Param("delta") int delta);
+
+    @Modifying
+    @Query(
+            value = """
+            INSERT INTO user_rewards (user_id, total_stamps, last_certified)
+            VALUES (:userId, :delta, NOW())
+            ON DUPLICATE KEY UPDATE
+                total_stamps = total_stamps + :delta,
+                last_certified = NOW()
+            """,
+            nativeQuery = true
+    )
+    int incrementOrCreate(@Param("userId") Long userId, @Param("delta") int delta);
 }
