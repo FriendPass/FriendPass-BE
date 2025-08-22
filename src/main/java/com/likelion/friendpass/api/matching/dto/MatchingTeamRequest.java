@@ -12,5 +12,5 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MatchingTeamRequest {
-    private List<MatchingRequestCreate> users;
+    private List<MatchingRequestForModel> users;
 }

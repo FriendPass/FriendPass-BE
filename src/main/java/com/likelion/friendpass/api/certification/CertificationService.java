@@ -11,6 +11,7 @@ import com.likelion.friendpass.domain.place.PlaceRepository;
 import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -32,12 +33,14 @@ public class CertificationService {
     private final RankService rankService;
 
     public CertificationResponse certify(CertificationRequest request) {
-        Long userId = request.userId();
+        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Double lat = request.latitude();
         Double lng = request.longitude();
 
         User user = userRepository.getReferenceById(userId);
-
+        if (request.latitude() == null || request.longitude() == null) {
+            throw new IllegalArgumentException("위치 정보가 누락되었습니다.");
+        }
         // 팀 가져오기
         MatchingRequest matchingRequest = matchingRequestRepository
                 .findByUserAndStatus(user, MatchingStatus.수락)

@@ -57,6 +57,7 @@ public class GlobalExceptionHandler {
     // 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleEtc(Exception e, HttpServletRequest req) {
+        e.printStackTrace();
         return to(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", req);
     }
 

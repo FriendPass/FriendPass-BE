@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,10 +16,14 @@ import java.util.List;
 @Setter
 public class ConfirmedTeamResponse {
 
-    @JsonProperty("member_user_ids")
+    @JsonProperty("team_ids")
     private List<Long> memberUserIds;
     private double score;
 
     @JsonProperty("representative_interests")
     private List<String> representativeInterests;
+
+    @JsonProperty("matched_region")
+    private String matchedRegion;
+
 }
