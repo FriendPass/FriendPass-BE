@@ -1,5 +1,6 @@
 package com.likelion.friendpass.api.user.dto;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class UpdateInterestsRequest {
 
-        @Size(max = 3, message = "관심사는 최대 3개까지 선택 가능합니다.")
+        @NotNull
+        @Size(min = 1, max = 3)
         private List<Long> interestIds;
 }
