@@ -29,7 +29,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.SSH_KEY }}
           source: "build/libs/*.jar"
-          target: "/home/ec2-user/friendpass/backend/"
+          target: "/home/ec2-user/friendpass/backend/app.jar"
 
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@master
@@ -39,5 +39,5 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/friendpass
-            docker compose up -d --build --no-deps backend
+            docker compose up -d --build spring
             docker image prune -f
