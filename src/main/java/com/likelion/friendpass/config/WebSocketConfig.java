@@ -9,7 +9,6 @@ import org.springframework.web.socket.config.annotation.*;
 @Configuration
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
-
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
@@ -17,14 +16,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*") // 배포 시 실제 도메인으로 제한 권장
-                .withSockJS();                 // 필요 없으면 제거 가능
+                // [CHANGED] 프로덕션/로컬 오리진만 허용 (와일드카드 제거)
+                .setAllowedOriginPatterns(
+                        "https://friendpass.site",          // [ADDED]
+                        "https://www.friendpass.site",      // [ADDED]
+                        "http://localhost:3000"             // [ADDED] 개발용
+                )
+                .withSockJS(); // 필요 없으면 제거 가능
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic");    // 소규모: 내장 브로커로 시작
-        registry.setApplicationDestinationPrefixes("/app"); // 클라 → 서버 진입 prefix
+        registry.enableSimpleBroker("/topic");
+        registry.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
