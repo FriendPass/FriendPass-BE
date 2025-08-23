@@ -7,7 +7,6 @@ plugins {
 group = 'com.likelion'
 version = '0.0.1-SNAPSHOT'
 
-
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
@@ -22,29 +21,38 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // Swagger (Spring Boot 3.x + MVC)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+
+    // WebClient 사용 용도 → starter-webflux 대신 spring-webflux 모듈만 추가
+    implementation 'org.springframework:spring-webflux'
+
+    // DB
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // AWS
+    implementation 'software.amazon.awssdk:s3:2.25.32'
+    implementation 'software.amazon.awssdk:translate:2.25.32'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.2'
+
+    // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-    implementation 'software.amazon.awssdk:s3:2.25.32'
-    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.2'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Lombok & Config Processor
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    implementation 'software.amazon.awssdk:translate:2.25.32'
-    implementation('org.springdoc:springdoc-openapi-starter-webflux-ui:2.1.0') {
-        exclude group: 'org.springdoc', module: 'springdoc-openapi-ui'
-        exclude group: 'org.springdoc', module: 'springdoc-openapi-common'
-    }
 }
 
 tasks.withType(Test) {
