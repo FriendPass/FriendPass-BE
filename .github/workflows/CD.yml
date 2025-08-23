@@ -25,8 +25,7 @@ jobs:
       - name: Rename JAR
         run: |
           JAR_NAME=$(ls build/libs/*.jar | grep -v 'plain' | head -n 1)
-          cp "$JAR_NAME" build/libs/app.jar
-      
+          echo "JAR_NAME=$JAR_NAME" >> $GITHUB_ENV
 
       - name: Transfer JAR to EC2
         uses: appleboy/scp-action@master
