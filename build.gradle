@@ -18,6 +18,7 @@ repositories {
 }
 
 dependencies {
+    // Spring Boot starters
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -26,13 +27,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-    // Swagger (Spring Boot 3.x + MVC)
+    // Swagger (Spring Boot 3.x + MVC 전용)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
-    // WebClient 사용 용도 → starter-webflux 대신 spring-webflux 모듈만 추가
+    // WebClient (starter-webflux ❌, spring-webflux ✔)
     implementation 'org.springframework:spring-webflux'
 
-    // DB
+    // Database
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     // AWS
