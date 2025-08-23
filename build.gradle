@@ -56,6 +56,11 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+
+tasks.withType(JavaCompile).configureEach {
+    options.fork = false
+}
+
 tasks.withType(Test) {
     ignoreFailures = true
 }
