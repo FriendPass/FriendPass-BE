@@ -27,10 +27,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
-    // Swagger (Spring Boot 3.x + MVC 전용)
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-
-    // WebClient (starter-webflux ❌, spring-webflux ✔)
+    // WebClient (spring-webflux)
     implementation 'org.springframework:spring-webflux'
 
     // Database
@@ -55,7 +52,6 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
-
 
 tasks.withType(JavaCompile).configureEach {
     options.fork = false
