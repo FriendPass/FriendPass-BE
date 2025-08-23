@@ -41,9 +41,10 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'software.amazon.awssdk:translate:2.25.32'
-    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.1.0'
-
-
+    implementation('org.springdoc:springdoc-openapi-starter-webflux-ui:2.1.0') {
+        exclude group: 'org.springdoc', module: 'springdoc-openapi-ui'
+        exclude group: 'org.springdoc', module: 'springdoc-openapi-common'
+    }
 }
 
 tasks.withType(Test) {
