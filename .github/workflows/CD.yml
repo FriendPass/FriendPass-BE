@@ -25,7 +25,7 @@ jobs:
       - name: Rename JAR
         run: |
           JAR_NAME=$(ls build/libs/*.jar | head -n 1)
-          mv -f "$JAR_NAME" build/libs/app.jar
+          cp "$JAR_NAME" build/libs/app.jar
       
 
       - name: Transfer JAR to EC2
