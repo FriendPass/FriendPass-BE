@@ -2,14 +2,18 @@ package com.likelion.friendpass.api.certification;
 
 import com.likelion.friendpass.api.certification.dto.CertificationRequest;
 import com.likelion.friendpass.api.certification.dto.CertificationResponse;
+import com.likelion.friendpass.api.rank.RankService;
 import com.likelion.friendpass.domain.certification.Certification;
 import com.likelion.friendpass.domain.certification.CertificationRepository;
 import com.likelion.friendpass.domain.matching.*;
 import com.likelion.friendpass.domain.place.Place;
 import com.likelion.friendpass.domain.place.PlaceRepository;
+import com.likelion.friendpass.domain.rank.UserRewards;
+import com.likelion.friendpass.domain.rank.UserRewardsRepository;
 import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,14 +32,17 @@ public class CertificationService {
     private final MatchingRequestRepository matchingRequestRepository;
     private final UserRepository userRepository;
     private final MatchingTeamInterestRepository matchingTeamInterestRepository;
+    private final RankService rankService;
 
     public CertificationResponse certify(CertificationRequest request) {
-        Long userId = request.userId();
+        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Double lat = request.latitude();
         Double lng = request.longitude();
 
         User user = userRepository.getReferenceById(userId);
-
+        if (request.latitude() == null || request.longitude() == null) {
+            throw new IllegalArgumentException("위치 정보가 누락되었습니다.");
+        }
         // 팀 가져오기
         MatchingRequest matchingRequest = matchingRequestRepository
                 .findByUserAndStatus(user, MatchingStatus.수락)
@@ -85,15 +92,10 @@ public class CertificationService {
             newCertification.setTeam(team);
 
             certificationRepository.save(newCertification);
+            rankService.addStamps(userId, 1);
+
             return new CertificationResponse(true, "인증 성공! 스탬프가 지급되었습니다.");
 
-            // 리워드 추가
-            /*
-            Ranking ranking = rankingRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("랭킹 없음"));
-            ranking.setStampCount(ranking.getStampCount() + 1);
-            rankingRepository.save(ranking);
-            */
         }
 
 

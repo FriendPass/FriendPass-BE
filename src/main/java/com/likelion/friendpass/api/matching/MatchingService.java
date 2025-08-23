@@ -14,6 +14,8 @@ import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,6 +23,7 @@ import com.likelion.friendpass.api.chat.TeamChatService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +39,7 @@ public class MatchingService {
     private final PlaceRepository placeRepository;
     private final InterestTagRepository interestTagRepository;
     private final TeamChatService teamChatService;
-
+    private static final Logger log = LoggerFactory.getLogger(MatchingService.class);
     // 유저 관심사 조회 (이름)
     private List<String> getUserInterestNames(Long userId) {
         return userInterestRepository.findNamesByUserId(userId);
@@ -85,8 +88,8 @@ public class MatchingService {
 
     // 매칭 신청하기 = dto가 필요하므로 dto로 함 (지역 받아야 해서)
     @Transactional
-    public void createMatchingRequest(final MatchingRequestCreate dto) {
-        User user = userRepository.findById(dto.getUserId())
+    public void createMatchingRequest(Long userId, MatchingRequestCreate dto) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
 
         MatchingRequest request = MatchingRequest.builder()
@@ -101,23 +104,28 @@ public class MatchingService {
 
     // 매칭하기
     @Transactional
-    public List<MatchingCompleteResponse> createMatchingTeam(MatchingRegion region) {
-        // 지역 대기 중인 요청 가져오기
+    public List<MatchingCompleteResponse> createMatchingTeam() {
+        // 대기 중인 요청 가져오기
         List<MatchingRequest> waitingRequests = matchingRequestRepository.findByStatus(MatchingStatus.대기중);
 
         if (waitingRequests.size() < 4) {
             throw new RuntimeException("팀을 만들기 위한 충분한 매칭 신청이 없습니다.");
         }
 
-        // 모델에 보낼 DTO 생성 (유저 정보 + 관심사)
-        List<MatchingRequestCreate> userDtos = waitingRequests.stream()
-                .map(req -> new MatchingRequestCreate(
-                        req.getUser().getUserId(),
-                        req.getUser().getIsExchange(),
-                        req.getRegion(),
-                        getUserInterestNames(req.getUser().getUserId()) // 관심사 이름 리스트
-                ))
+
+        List<MatchingRequestForModel> userDtos = waitingRequests.stream()
+                .map(req -> {
+                    User user = req.getUser();
+                    List<String> interests = getUserInterestNames(user.getUserId());
+                    return new MatchingRequestForModel(
+                            user.getUserId(),
+                            user.getIsExchange() ? 1 : 0,
+                            req.getRegion().name(),
+                            interests
+                    );
+                })
                 .toList();
+
 
         MatchingTeamRequest teamRequestDto = new MatchingTeamRequest(userDtos);
 
@@ -136,7 +144,7 @@ public class MatchingService {
         for (ConfirmedTeamResponse confirmedTeam : confirmedTeams) {
             // 팀 생성 및 저장
             MatchingTeam team = MatchingTeam.builder()
-                    .matchedRegion(region)
+                    .matchedRegion(MatchingRegion.valueOf(confirmedTeam.getMatchedRegion()))
                     .matchedAt(LocalDateTime.now())
                     .build();
             matchingTeamRepository.save(team);
@@ -164,14 +172,22 @@ public class MatchingService {
                 request.setStatus(MatchingStatus.수락);
             }
 
+            System.out.println("추천된 팀 수: " + confirmedTeams.size());
+            if (confirmedTeam.getRepresentativeInterests() == null) {
+                System.out.println("대표 관심사 맵이 null입니다!");
+                throw new RuntimeException("대표 관심사 맵이 null이라서 처리 불가");
+            }
+
+
             // 모델에서 받은 대표 관심사 이름 → DB에서 id 조회 → DTO 생성
-            List<InterestTagResponse> interestTags = confirmedTeam.getRepresentativeInterests().stream()
+            List<String> interestNames = confirmedTeam.getRepresentativeInterests(); // 이미 List<String>임
+
+            List<InterestTagResponse> interestTags = interestNames.stream()
                     .map(name -> interestTagRepository.findByName(name)
                             .map(it -> new InterestTagResponse(it.getInterestId(), it.getName()))
                             .orElseThrow(() -> new RuntimeException("관심사를 찾을 수 없습니다: " + name))
                     ).toList();
 
-            // 팀 관심사 저장
             for (InterestTagResponse tag : interestTags) {
                 InterestTag interest = interestTagRepository.findById(tag.InterestId())
                         .orElseThrow(() -> new RuntimeException("관심사 ID를 찾을 수 없습니다."));
@@ -181,10 +197,13 @@ public class MatchingService {
                 teamInterest.setInterest(interest);
                 matchingTeamInterestRepository.save(teamInterest);
             }
+            MatchingRegion matchedRegion = MatchingRegion.valueOf(confirmedTeam.getMatchedRegion());
+
+
             // 관심사별 장소 조회
             List<InterestPlaceResponse> interestPlaces = interestTags.stream()
                     .map(tag -> {
-                        List<Place> places = placeRepository.findByRegionAndInterest_InterestId(region, tag.InterestId());
+                        List<Place> places = placeRepository.findByRegionAndInterest_InterestId(matchedRegion, tag.InterestId());
                         List<PlaceResponse> placeResponses = places.stream()
                                 .map(p -> new PlaceResponse(p.getName(), p.getAddress(), p.getDescription()))
                                 .toList();
@@ -199,7 +218,7 @@ public class MatchingService {
                     .map(m -> new MatchingMemberResponse(m.getUser().getUserId(), m.getUser().getNickname()))
                     .toList();
 
-            MatchingStatusResponse statusDto = buildStatusResponse(MatchingStatus.수락, region,
+            MatchingStatusResponse statusDto = buildStatusResponse(MatchingStatus.수락, matchedRegion,
                     interestTags.stream().map(InterestTagResponse::name).toList());
 
             MatchingCompleteResponse completeDto = new MatchingCompleteResponse();
