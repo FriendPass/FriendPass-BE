@@ -22,13 +22,16 @@ jobs:
           chmod +x ./gradlew
           ./gradlew build -x test
 
+      - name: Rename JAR
+        run: mv build/libs/*.jar build/libs/app.jar
+
       - name: Transfer JAR to EC2
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ec2-user
           key: ${{ secrets.SSH_KEY }}
-          source: "build/libs/*.jar"
+          source: "build/libs/app.jar"
           target: "/home/ec2-user/friendpass/backend/"
 
       - name: Deploy with Docker Compose
