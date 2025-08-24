@@ -8,6 +8,8 @@ import com.likelion.friendpass.domain.certification.CertificationRepository;
 import com.likelion.friendpass.domain.matching.*;
 import com.likelion.friendpass.domain.place.Place;
 import com.likelion.friendpass.domain.place.PlaceRepository;
+import com.likelion.friendpass.domain.rank.UserRewards;
+import com.likelion.friendpass.domain.rank.UserRewardsRepository;
 import com.likelion.friendpass.domain.user.User;
 import com.likelion.friendpass.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -90,19 +92,10 @@ public class CertificationService {
             newCertification.setTeam(team);
 
             certificationRepository.save(newCertification);
-
-            // 리워드 스탬프 지급
-            //rankService.addStamps(userId, 1);
+            rankService.addStamps(userId, 1);
 
             return new CertificationResponse(true, "인증 성공! 스탬프가 지급되었습니다.");
 
-            // 리워드 추가
-            /*
-            Ranking ranking = rankingRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("랭킹 없음"));
-            ranking.setStampCount(ranking.getStampCount() + 1);
-            rankingRepository.save(ranking);
-            */
         }
 
 

@@ -1,9 +1,7 @@
 package com.likelion.friendpass.domain.rank;
 
 import com.likelion.friendpass.api.rank.dto.RankEntryDto;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
@@ -16,7 +14,7 @@ public interface UserRewardsRepository extends JpaRepository<UserRewards, Long> 
         from UserRewards ur
         where (ur.totalStamps > (select x.totalStamps from UserRewards x where x.userId = :userId))
            or (ur.totalStamps = (select x.totalStamps from UserRewards x where x.userId = :userId)
-              and ur.userId < :userId)
+               and ur.userId < :userId)
         """)
     long rankOf(@Param("userId") Long userId);
 
@@ -36,11 +34,17 @@ public interface UserRewardsRepository extends JpaRepository<UserRewards, Long> 
     @Query("update UserRewards ur set ur.totalStamps = ur.totalStamps + :delta, ur.lastCertified = CURRENT_TIMESTAMP where ur.userId = :userId")
     int incrementStamps(@Param("userId") Long userId, @Param("delta") int delta);
 
+    // 없으면 생성, 있으면 증가
     @Modifying
-    @Query(value = """
-        INSERT INTO user_rewards (user_id, total_stamps, last_certified)
-        VALUES (:userId, :delta, NOW())
-        ON DUPLICATE KEY UPDATE total_stamps = total_stamps + :delta, last_certified = NOW()
-        """, nativeQuery = true)
+    @Query(
+        value = """
+            INSERT INTO user_rewards (user_id, total_stamps, last_certified)
+            VALUES (:userId, :delta, NOW())
+            ON DUPLICATE KEY UPDATE
+                total_stamps = total_stamps + :delta,
+                last_certified = NOW()
+            """,
+        nativeQuery = true
+    )
     int incrementOrCreate(@Param("userId") Long userId, @Param("delta") int delta);
 }
