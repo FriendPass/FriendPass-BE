@@ -129,7 +129,7 @@ public class MatchingService {
 
         MatchingTeamRequest teamRequestDto = new MatchingTeamRequest(userDtos);
 
-        WebClient webClient = WebClient.create("http://friendpass-ai:8000");
+        WebClient webClient = WebClient.create("http://ai-container:8000");
 
         List<ConfirmedTeamResponse> confirmedTeams = webClient.post()
                 .uri("/recommend-teams")
