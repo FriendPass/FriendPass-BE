@@ -6,6 +6,7 @@ import com.likelion.friendpass.domain.interest.InterestTag;
 import com.likelion.friendpass.domain.place.Place;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -19,4 +20,5 @@ public class MatchingCompleteResponse {
     private List<MatchingMemberResponse> members;
     private List<InterestTagResponse> representativeInterests;
     private List<InterestPlaceResponse> representativePlaces;
+    private LocalDateTime matchedAt;
 }

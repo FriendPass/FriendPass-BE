@@ -298,6 +298,7 @@ public class MatchingService {
         completeDto.setMembers(memberDtos);
         completeDto.setRepresentativeInterests(interestTags);
         completeDto.setRepresentativePlaces(interestPlaces);
+        completeDto.setMatchedAt(team.getMatchedAt());
 
         return completeDto;
 
