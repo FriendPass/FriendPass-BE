@@ -16,7 +16,7 @@ public class TeamMatchingScheduler {
 
     private final MatchingService matchingService;
 
-    @Scheduled(cron = "0 */5 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */15 * * * *", zone = "Asia/Seoul")
     public void schedule() {
         System.out.println("🔁 매칭 API 호출 시작");
 
