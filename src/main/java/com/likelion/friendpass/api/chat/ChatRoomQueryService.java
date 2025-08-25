@@ -45,7 +45,8 @@ public class ChatRoomQueryService {
                 .stream()
                 .map(mm -> new RoomTeammateDto(
                         mm.getUser().getUserId(),
-                        mm.getUser().getNickname()
+                        mm.getUser().getNickname(),
+                        mm.getUser().getProfileImage()
                 ))
                 .toList();
 
