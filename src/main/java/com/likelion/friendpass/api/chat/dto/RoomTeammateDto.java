@@ -8,5 +8,6 @@ import lombok.Getter;
 public class RoomTeammateDto {
     private Long userId;
     private String nickname;
+    private String profileImage;
 }
 
