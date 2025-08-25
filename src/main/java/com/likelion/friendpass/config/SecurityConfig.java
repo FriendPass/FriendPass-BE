@@ -42,7 +42,8 @@ public class SecurityConfig {
                             "https://friendpass.site",
                             "https://www.friendpass.site",
                             "http://localhost:3000", // 개발용
-                            "http://localhost:3001" // 개발용
+                            "http://localhost:3001", // 개발용
+                            "https://friendpass-fe.netlify.app"
                     ));
                     cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
                     cfg.setAllowedHeaders(List.of("Authorization","Content-Type","X-Requested-With"));
