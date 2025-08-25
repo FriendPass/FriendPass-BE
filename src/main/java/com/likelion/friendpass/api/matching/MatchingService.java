@@ -170,6 +170,7 @@ public class MatchingService {
                         .orElseThrow(() -> new RuntimeException("매칭 요청이 존재하지 않습니다: " + userId));
                 request.setTeam(team);
                 request.setStatus(MatchingStatus.수락);
+                matchingRequestRepository.save(request);
             }
 
             System.out.println("추천된 팀 수: " + confirmedTeams.size());
